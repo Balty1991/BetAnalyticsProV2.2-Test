@@ -323,7 +323,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;min-he
     <!-- Top 2 Ale Zilei -->
     <div class="section">
       <div class="collapse-hdr" onclick="toggleSection('todaybest')">
-        <div class="sec-title">🎯 Top 2 ale zilei <span class="sec-badge" style="background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.3);color:var(--grn)">Doar azi</span> <span class="collapse-count" id="todaybest-count">—</span></div>
+        <div class="sec-title">🎯 Top 2 pronosticuri ale zilei <span class="sec-badge" style="background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.3);color:var(--grn)">Doar azi</span> <span class="collapse-count" id="todaybest-count">—</span></div>
         <div class="collapse-toggle" id="todaybest-toggle">▼</div>
       </div>
       <div class="collapse-body open" id="todaybest-body"><div class="matches-grid" id="today-best-grid"></div></div>
@@ -549,6 +549,7 @@ var BANKROLL_SETTINGS = JSON.parse(localStorage.getItem('bet_bankroll_settings')
 var API_TOKEN = ''; // setat din meta.json sau localStorage
 var DATA_BASE = '';
 var OPEN_TICKET_IDX = null;
+var LAST_DAY_KEY = '';
 
 // ============================================================
 // UTILS
@@ -1279,7 +1280,7 @@ function renderMatches(){
     if(CURRENT_FILTER === 'safe') return m.verdict === 'safe';
     if(CURRENT_FILTER === 'moderate') return m.verdict === 'moderate';
     if(CURRENT_FILTER === 'value') return m.bestBet && m.bestBet.value >= 0.05;
-    if(CURRENT_FILTER === 'fav') return m.favoriteRecommend || (m.mlFlags && m.mlFlags.fav) || (!!m.favorite && (m.favoriteProp || 0) >= 52);
+    if(CURRENT_FILTER === 'fav') return m.favoriteRecommend;
     if(CURRENT_FILTER === 'btts') return (m.probBtts >= 58) || (m.mlFlags && m.mlFlags.btts) || !!getBetByType(m, 'btts');
     if(CURRENT_FILTER === 'o35') return (m.probOver35 >= 30) || (m.mlFlags && m.mlFlags.o35) || !!getBetByType(m, 'over35');
     return true;
@@ -2123,7 +2124,23 @@ function updateSectionCount(id,count){
 // ============================================================
 // RENDER ALL
 // ============================================================
+
+function getCurrentDayKey(){
+  var now = new Date();
+  return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+}
+function checkDailyRefresh(){
+  var current = getCurrentDayKey();
+  if(LAST_DAY_KEY && current !== LAST_DAY_KEY){
+    LAST_DAY_KEY = current;
+    renderTodayBest();
+    renderMatches();
+    toast('Top 2 pronosticuri ale zilei a fost actualizat pentru noua zi', 'ok');
+  }
+}
+
 function renderAll(){
+  LAST_DAY_KEY = getCurrentDayKey();
   var total=ALL_MATCHES.length;
   var safe=ALL_MATCHES.filter(function(m){ return m.verdict==='safe'; }).length;
   var value=ALL_MATCHES.filter(function(m){ return m.bestBet&&m.bestBet.value>=0.05; }).length;
@@ -2159,6 +2176,7 @@ window.addEventListener('DOMContentLoaded', function(){
   var st=localStorage.getItem('bsd_token');
   if(st) API_TOKEN=st;
   doRefresh();
+  setInterval(checkDailyRefresh, 60000);
 });
 </script>
 </body>
