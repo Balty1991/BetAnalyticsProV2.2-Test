@@ -322,11 +322,11 @@ body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;min-he
 
     <!-- Top 2 Ale Zilei -->
     <div class="section">
-      <div class="collapse-hdr" onclick="toggleSection('todaybest')">
+      <div class="sec-hdr collapsible-header" onclick="toggleSection('todaybest')" style="border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:10px 14px;background:rgba(34,197,94,.05);margin-bottom:0;cursor:pointer">
         <div class="sec-title">🎯 Top 2 pronosticuri ale zilei <span class="sec-badge" style="background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.3);color:var(--grn)">Doar azi</span> <span class="collapse-count" id="todaybest-count">—</span></div>
-        <div class="collapse-toggle" id="todaybest-toggle">▼</div>
+        <span class="collapse-toggle" id="todaybest-toggle" style="background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.25);color:var(--grn)">▼</span>
       </div>
-      <div class="collapse-body open" id="todaybest-body"><div class="matches-grid" id="today-best-grid"></div></div>
+      <div class="collapsible-body open" id="todaybest-body"><div class="matches-grid" id="today-best-grid" style="margin-top:10px"></div></div>
     </div>
 
     <!-- Top 5 Value Picks -->
@@ -461,6 +461,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;min-he
         <button class="btn btn-primary" style="font-size:14px;padding:12px 24px;background:linear-gradient(135deg,var(--acc),var(--cyan))" onclick="generateOver15Ticket()">🔥 Bilet 1.5G EV+</button>
         <button class="btn btn-primary" style="font-size:14px;padding:12px 24px;background:linear-gradient(135deg,var(--pur),var(--red))" onclick="generateMixTicket()">🎯 Mix 70% / ~5.0</button>
         <button class="btn btn-primary" style="font-size:14px;padding:12px 24px;background:linear-gradient(135deg,var(--yel),var(--grn))" onclick="generateBestEventTicket()">⭐ Evenimentul zilei</button>
+        <button class="btn btn-primary" style="font-size:14px;padding:12px 24px;background:linear-gradient(135deg,var(--red),var(--org))" onclick="generateBigWinTicket()">🚀 Bilet Big Win</button>
       </div>
       <div style="font-size:11px;color:var(--muted)">Criteriu: EV pozitiv, contradicții eliminate, diversificare și selecții mai curate.</div>
     </div>
@@ -1864,6 +1865,35 @@ function generateBestEventTicket(){
   if(candidates.length){ finalizeTicket('best_single', '⭐ Evenimentul zilei', [candidates[0]], candidates[0].bestBet.odds); return; }
 
   finalizeTicket('best_single', '⭐ Evenimentul zilei', [], 1);
+}
+
+function generateBigWinTicket(){
+  var baseProfile = {
+    allowedTypes: ['homeWin', 'awayWin', 'over15', 'over25', 'btts'],
+    minAdjProb: 70,
+    minValue: 0.010,
+    minConf: 48,
+    minOdd: 1.20,
+    maxOdd: 1.80,
+    minPicks: 8,
+    maxPicks: 12,
+    targetMinOdds: 50.00,
+    targetMaxOdds: 80.00,
+    hardMaxOdds: 100.00,
+    maxSameLeague: 2,
+    maxSameMarket: 4
+  };
+
+  for(var relax = 0; relax <= 3; relax++){
+    var pack = collectCandidates(baseProfile.allowedTypes, baseProfile, relax);
+    var chosen = selectDiversifiedPicks(pack.list, pack.profile);
+    if(chosen.picks.length >= pack.profile.minPicks && chosen.totalOdds >= pack.profile.targetMinOdds){
+      finalizeTicket('big_win', '🚀 Bilet Big Win', chosen.picks, chosen.totalOdds);
+      return;
+    }
+  }
+
+  finalizeTicket('big_win', '🚀 Bilet Big Win', [], 1);
 }
 
 function renderBilete(){
