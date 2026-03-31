@@ -2114,6 +2114,44 @@ function toggleTicketDetail(idx){
   renderTracking();
 }
 
+function deleteTicket(idx){
+  if(typeof idx !== 'number' || idx < 0 || idx >= TRACKING.length) return;
+  TRACKING.splice(idx, 1);
+  OPEN_TICKET_IDX = null;
+  localStorage.setItem('bet_tracking', JSON.stringify(TRACKING));
+  renderTracking();
+  toast('Bilet șters', 'ok');
+}
+function clearHistory(){
+  TRACKING = [];
+  OPEN_TICKET_IDX = null;
+  localStorage.setItem('bet_tracking', JSON.stringify(TRACKING));
+  renderTracking();
+  toast('Istoricul a fost șters', 'ok');
+}
+function exportHistory(){
+  try {
+    var payload = {
+      exported_at: new Date().toISOString(),
+      tickets: TRACKING
+    };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'bet_tracking_export.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }, 1000);
+    toast('Export realizat', 'ok');
+  } catch(e){
+    console.error(e);
+    toast('Eroare la export', 'err');
+  }
+}
+
 // ============================================================
 // BANKROLL
 // ============================================================
